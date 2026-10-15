@@ -1,3 +1,35 @@
+# Research Kernel v0.4 — Scientific Intent, Plan, Context, Execution, Verification
+
+```
+Researcher + Study + Frozen Protocol + published Asset versions
+                           |
+                           v
+                  Typed Plan DAG (Git)
+                           |
+                   Static Preflight
+                           |
+     +---------------------+--------------------+
+     |                     |                    |
+ Node-local Context   Builtin Executor    Proof-of-completion
+ explicit authority   typed operation     local output hash
+     |                     |                    |
+     +---------------------+--------------------+
+                           |
+                  .rk/ execution ledger
+                           |
+                    Reviewed Export
+                           |
+              Git small Run Manifest
+                           |
+                Scientific Evidence
+                           |
+                Human Scientific Review
+```
+
+This is a staged engineering interpretation of compositional research execution; it does **not** implement Free Monad or Grothendieck Topos machinery. The v0.4 builtin executor is not OS-isolated and only permits a few audited operations. See `docs/EXECUTION-v0.4.zh-CN.md` for precise runtime/trust boundaries.
+
+---
+
 # Research Kernel v0.2 Architecture
 
 ## Source of truth and roles

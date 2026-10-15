@@ -15,7 +15,7 @@ class KernelTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name) / "project"
         self.root.mkdir()
-        for module in ("rk.py", "rk_assets.py", "rk_science.py", "rk_context.py", "rk_intake.py"):
+        for module in ("rk.py", "rk_assets.py", "rk_science.py", "rk_context.py", "rk_intake.py", "rk_execution.py"):
             shutil.copyfile(SRC.with_name(module), self.root / module)
         self.call("init", ok=True)
 

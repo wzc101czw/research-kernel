@@ -19,7 +19,7 @@ class AssetTests(unittest.TestCase):
         self.dir = Path(self.tmp.name)
         self.root = self.dir / "project"
         self.root.mkdir()
-        for name in ("rk.py", "rk_assets.py", "rk_science.py", "rk_context.py", "rk_intake.py", ".gitignore"):
+        for name in ("rk.py", "rk_assets.py", "rk_science.py", "rk_context.py", "rk_intake.py", "rk_execution.py", ".gitignore"):
             shutil.copyfile(SOURCE / name, self.root / name)
         self.runcli("init")
 

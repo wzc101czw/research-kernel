@@ -1,3 +1,17 @@
+# v0.4 快速入口
+
+v0.4 的新内容是 **Typed Plan + Node-local Context + 受限内置执行器 + Resume + Git Manifest 导出**。首次体验请按照 [`docs/EXECUTION-v0.4.zh-CN.md`](docs/EXECUTION-v0.4.zh-CN.md) 的合成 Benchmark 案例操作。先执行：
+
+```bash
+python rk.py init
+python rk.py doctor
+python -m unittest discover -s tests -v
+```
+
+请保留已有 v0.3.x 的资产、Study、Claim、Memory 和 Skill 文件；升级到 v0.4 不需要迁移它们。本地 `.rk/` 结果仍然不进入 Git。
+
+---
+
 # Research Kernel v0.2 中文快速入门
 
 本版本在 v0.1 的 Task、Handoff、Memory、Claim 和 Skills 上新增 **Research Asset Registry**。

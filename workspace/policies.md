@@ -40,3 +40,12 @@ Store large datasets and model weights outside ordinary Git. Commit source manif
 - No agent may self-authorize a scientific finding by finalizing its own review. CLI records reviewer text but does not authenticate the reviewer. Human oversight and independent evidence are required.
 - Context Pack is an output artifact with a finite *character* budget (not a token-precise window), an optional local selection manifest and no raw dataset transfer.
 - Legacy Intake is inspection only; its path-derived classes are hypotheses about file roles and require human confirmation. Credentials cannot be managed as research evidence.
+
+
+## Research execution (v0.4)
+
+- Treat the declared Need as the research goal but preserve the explicit Spirit invariants: frozen protocol, no secret content, and local-only artifacts.
+- A Plan is not an approval. The CLI reviewer field is an unauthenticated annotation, not a permission system.
+- Never expose arbitrary host shell, Python eval, network fetch, or credentials to untrusted Agent-generated Plan operations.
+- For source-linked evidence, record actual sha256 digests and meaningful exclusions. Benchmark arithmetic output cannot auto-verify Claim validity or statistical significance.
+- Context is an intentionally limited local view. Missing mandatory Context must halt that Step rather than silently lowering scientific standards.

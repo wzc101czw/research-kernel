@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "name": "benchmark-comparison-v1",
+  "purpose": "Check whether two Agent Benchmark Runs agree on the declared conditions of a controlled strategy comparison.",
+  "required_equal": [
+    "dataset_version",
+    "evaluation_split",
+    "metric_definition",
+    "scorer_version",
+    "compute_budget"
+  ],
+  "allowed_vary": [
+    "context_strategy"
+  ],
+  "same_protocol": true,
+  "limitations": "Metadata-only comparison. Does not prove accurate metadata, validity, absence of contamination/confounding or statistical significance. Human scientific review required."
+}

@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[1]
-MODULES = ('rk.py', 'rk_assets.py', 'rk_science.py', 'rk_context.py', 'rk_intake.py')
+MODULES = ('rk.py', 'rk_assets.py', 'rk_science.py', 'rk_context.py', 'rk_intake.py', 'rk_execution.py')
 
 
 class IntakeTests(unittest.TestCase):

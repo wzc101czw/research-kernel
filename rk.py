@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Research Kernel v0.3: local-first, versioned research records."""
+"""Research Kernel v0.4: scientific plans, controlled execution and records."""
 import argparse
 import hashlib
 import json
@@ -13,6 +13,7 @@ import rk_assets
 import rk_science
 import rk_context
 import rk_intake
+import rk_execution
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -27,6 +28,7 @@ DIRS = (
     "science/questions", "science/hypotheses", "science/studies",
     "science/protocols", "science/runs", "science/observations",
     "science/analyses", "science/reviews",
+    "plans/specs", "plans/locks",
 )
 STARTER = {
     "AGENTS.md": "# Research Kernel\nRead workspace/policies.md and knowledge/INDEX.md before work.\n",
@@ -344,6 +346,7 @@ def doctor():
                 problems.append(f"Unreadable record: {path.name} ({e})")
     problems.extend(rk_assets.audit(ROOT, source_ref))
     problems.extend(rk_science.check(ROOT, source_ref))
+    problems.extend(rk_execution.audit(ROOT))
     for problem in problems:
         print("ERROR:", problem)
     n_assets = len(list((ROOT / "assets/registry").glob("*/*/*.json")))
@@ -393,7 +396,7 @@ def context(args):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Research Kernel v0.3")
+    parser = argparse.ArgumentParser(description="Research Kernel v0.4")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("init")
     sub.add_parser("doctor")
@@ -435,6 +438,14 @@ def main(argv=None):
     rk_assets.add_cli(sub)
     rk_science.add_cli(sub)
     rk_intake.add_cli(sub)
+    rk_execution.add_cli(sub)
+
+    compose = sub.add_parser("compose", help="read-only scientific result composition checks")
+    compose_cmds = compose.add_subparsers(dest="compose_action", required=True)
+    check = compose_cmds.add_parser("check", help="compare two sealed Runs under a declared contract")
+    check.add_argument("left", help="first Run ID")
+    check.add_argument("right", help="second Run ID")
+    check.add_argument("--contract", default="science/contracts/benchmark-comparison.v1.json")
 
     p = sub.add_parser("context")
     rk_context.add_arguments(p)
@@ -455,7 +466,7 @@ def main(argv=None):
             (memory_propose if args.action == "propose" else memory_accept)(args)
         elif args.cmd == "context":
             # Preserve v0.2 default Context output for existing users/scripts.
-            if not (args.study or args.memory or args.manifest_out or args.profile != "bootstrap"):
+            if not (args.study or args.protocol or args.memory or args.manifest_out or args.profile != "bootstrap"):
                 context(args)
             else:
                 rk_context.pack(
@@ -471,6 +482,12 @@ def main(argv=None):
             return rk_science.dispatch(args, ROOT, source_ref, save_json)
         elif args.cmd == "intake":
             return rk_intake.dispatch(args, ROOT)
+        elif args.cmd == "plan":
+            return rk_execution.dispatch(args, ROOT)
+        elif args.cmd == "compose":
+            # Lazy import preserves old per-module testing and v0.3 commands.
+            import rk_composition
+            return rk_composition.check(args, ROOT, source_ref)
         return 0
     except (OSError, ValueError, EOFError, TypeError, KeyError) as e:
         print(f"ERROR: {e}", file=sys.stderr)

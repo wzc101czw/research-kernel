@@ -11,3 +11,8 @@ description: Create traceable experimental Run, Observation and Analysis records
 6. Only after obtaining and registering real evidence, seal in order with `science seal RUN_ID --recorded-by "..."`, then `science seal OBS_ID ...`, then `science seal ANALYSIS_ID ...`. Missing evidence or an unsealed predecessor must block sealing.
 7. For theoretical research, use a source-linked Analysis and a separate proof review; do not invent Run/Observation.
 8. Run `python rk.py doctor`. No `verified` Claim status may be assigned by this Skill.
+
+
+## v0.4 deterministic execution outputs
+
+A completed typed Plan can be exported as a small manifest via `python rk.py plan export EXEC_ID --recorded-by "Researcher"`. Inspect this export, then use it as `--source` when creating the scientific Run. Do **not** claim a valid scientific effect just because `jsonl_rate`, `compare_rates`, or Plan preflight passed.

@@ -1,0 +1,9 @@
+[project]
+name = "research-kernel-starter"
+version = "0.1.0"
+description = "Git-native, local-first research kernel starter"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.uv]
+package = false

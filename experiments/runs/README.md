@@ -10,3 +10,6 @@ For each reproducible run record at least:
 - known limitations and failure modes
 
 Later versions can standardize these into JSON schemas and an automated validator.
+
+- asset_refs to exact published dataset and benchmark versions (e.g. `dataset:corpus@v1`, `benchmark:agent-suite@v2`)
+- payload SHA-256 / frozen manifest hash and external artifact locations

@@ -1,8 +1,8 @@
-# Research Kernel Starter (v0.1)
+# Research Kernel Starter v0.2
 
-[中文上手指南](QUICKSTART.zh-CN.md)
+A local-first, Git-native research kernel built on the Python standard library.
 
-A Git-native, local-first kernel for agent-assisted research. Python standard library only.
+**[中文快速入门](QUICKSTART.zh-CN.md)** · **[科研资产与大数据管理](docs/DATA-STORAGE.zh-CN.md)** · **[Architecture](ARCHITECTURE.md)**
 
 ## Quick start
 
@@ -10,71 +10,40 @@ A Git-native, local-first kernel for agent-assisted research. Python standard li
 python rk.py init
 python rk.py doctor
 python -m unittest discover -s tests -v
-git init
-git add .
-git commit -m "Initialize Research Kernel"
 ```
 
-`uv` is optional for this starter. If you use uv for your experiments, add a `pyproject.toml` and commit the generated `uv.lock`.
+Commit the source and metadata into Git. Raw datasets and machine-specific volume mappings are deliberately excluded by `.gitignore`.
 
-## Your first end-to-end workflow
+## CLI groups
 
-1. Create a task:
+- `rk.py task new|set`, `rk.py handoff TASK_ID`, `rk.py context --task TASK_ID`
+- `rk.py claim new|challenge`, `rk.py memory propose|accept`
+- `rk.py asset wizard|new|list|show|edit|set|link|publish|fork|verify|check`
+- `rk.py store bind|list`, `rk.py doctor`
+
+Example: register an external dataset without downloading it:
 
 ```bash
-python rk.py task new --title "Reproduce a result" --next "Read the methods section"
+python rk.py asset new dataset --slug demo --version v1 --title "Demo Corpus" \
+  --owner "Lab" --license "unknown" --uri "s3://research-bucket/demo-v1.tar.zst"
 ```
 
-2. Record real progress (replace TASK_ID with the output):
+Update metadata with `$EDITOR`:
 
 ```bash
-python rk.py task set TASK_ID --status active --next "Run baseline" --note "Recorded the setup"
+python rk.py asset edit dataset:demo@v1 --reason "add citation and checksum"
 ```
 
-3. Prepare a source file (example):
+Do not publish without verified requirements. See `docs/DATA-STORAGE.zh-CN.md` for actual review and integrity workflows.
 
-```bash
-echo "Baseline observations; not yet verified" > knowledge/evidence/baseline.txt
-python rk.py claim new --statement "Candidate speedup in setting X" --source knowledge/evidence/baseline.txt --scope "Hardware A, dataset X"
-```
+## Installation
 
-4. Generate handoff and bootstrap context:
+Requires Python >=3.10. No external Python dependencies are required. Does not connect to any model provider or storage provider by itself.
 
-```bash
-python rk.py handoff TASK_ID --note "Repeat experiment with another agent"
-python rk.py context --task TASK_ID --max-chars 12000
-```
+## Upgrade v0.1
 
-5. Propose a memory linked to an existing evidence file:
+Copy the new scripts and modules, merge root instructions/policies rather than overwriting local adaptations, and run `python rk.py init`. Existing task/claim/memory records remain supported; existing claim records without `asset_refs` continue to validate.
 
-```bash
-python rk.py memory propose --kind open_question --summary "Need to repeat the benchmark" --source knowledge/evidence/baseline.txt
-python rk.py memory accept MEMORY_ID
-```
+## Security caveat
 
-The last command requires an explicit interactive `ACCEPT`. This is a lightweight review gate, not an authentication mechanism.
-
-6. Validate and commit:
-
-```bash
-python rk.py doctor
-git add .
-git commit -m "Record research progress"
-```
-
-## Cross-agent use
-
-- Codex and Cursor may use root `AGENTS.md` when the project is opened as a repository.
-- Claude Code loads `CLAUDE.md`, which directs it to `AGENTS.md`.
-- Gemini CLI loads `GEMINI.md`, including the `@./AGENTS.md` import.
-- For an API agent or web-only model without filesystem access, pass a bootstrap packet made by `python rk.py context` plus the necessary evidence explicitly. A Git remote alone does not grant a model filesystem access.
-
-These adapters require actual client capability and permission configuration. They are not guaranteed to be behaviorally equivalent.
-
-## Important limitations
-
-- No automatic LLM memory summarization yet: `memory propose` is the review/write interface; Skill instructions guide the model.
-- No formal claim verification command: claims start `provisional`, and `challenge` changes the state to `disputed`. Promotion should follow a recorded experiment and human review (future version).
-- Source hashes detect **current-file drift** but do not preserve the old bytes. Commit source evidence or store immutable artifacts separately.
-- `context --max-chars` uses characters, not model tokens. It may omit optional sections that exceed the cap.
-- Do not commit secrets, private datasets or raw user conversations. Use `.gitignore` and separate secure storage.
+The CLI is a local workflow aid, not an access-control system. Agent shell permissions and network/storage credentials must be constrained separately.

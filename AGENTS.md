@@ -14,6 +14,8 @@ You are working inside a persistent research repository. Chat history is NOT the
 - Use `python rk.py doctor` after modifying structured research records.
 - Write tasks and handoffs to the repository, not just to chat.
 - Propose memories into `memory/inbox/`; promotion into `memory/compacted/` requires review.
+- Raw datasets must stay outside Git; store stable versioned asset metadata only.
+- Before changing a published benchmark/dataset definition, fork a new version and request human review.
 - Prefer precise source pointers and small context loads over dumping the entire workspace.
 
 ## Map
@@ -24,9 +26,13 @@ You are working inside a persistent research repository. Chat history is NOT the
 - `workspace/tasks/`: active task state
 - `workspace/handoffs/`: session/agent continuation notes
 - `knowledge/claims/`: provisional or challenged research conclusions
-- `experiments/runs/`: experiment manifests (manual in v0.1)
+- `experiments/runs/`: experiment manifests (manual in v0.2)
+- `assets/INDEX.md`: versioned datasets, global benchmarks, archival works and publications
+- `docs/DATA-STORAGE.zh-CN.md`: remote payload and human metadata editing policy
 
 ## Useful commands
 - `python rk.py doctor`
+- `python rk.py asset list` and `python rk.py asset show ASSET_REF`
+- `python rk.py asset check` (does not download any dataset)
 - `python rk.py context --task TASK_ID`
 - `python -m unittest discover -s tests -v`

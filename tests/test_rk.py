@@ -16,6 +16,7 @@ class KernelTests(unittest.TestCase):
         self.root = Path(self.tmp.name) / "project"
         self.root.mkdir()
         shutil.copyfile(SRC, self.root / "rk.py")
+        shutil.copyfile(SRC.with_name("rk_assets.py"), self.root / "rk_assets.py")
         self.call("init", ok=True)
 
     def tearDown(self):

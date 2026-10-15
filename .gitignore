@@ -10,3 +10,15 @@ secrets/
 !*.example
 *.sqlite
 *.db
+
+# Large datasets and machine-local physical storage (metadata remains in Git)
+/data/
+/datasets/raw/
+/benchmarks/data/
+/research/payloads/
+/artifacts/
+/.rk/
+*.ckpt
+*.safetensors
+*.pt
+*.pth

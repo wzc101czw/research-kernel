@@ -26,3 +26,10 @@
 
 ## Large artifacts
 Store large datasets and model weights outside ordinary Git. Commit source manifests, hashes and reproducible download/location instructions where allowed.
+
+## Asset Registry governance
+- Register large Raw Dataset locations as an asset manifest, never raw bytes in ordinary Git.
+- Published asset IDs and versions are stable; semantic changes require `asset fork`.
+- Human researchers must review license, access restrictions, source provenance and Benchmark protocol before publishing. `--reviewed-by` is an audit label only.
+- Use `rk.py asset verify` to check a **locally available single file** before trusting declared checksums. No automatic remote data fetch is allowed.
+- Report/document metadata is not a substitute for its underlying research evidence.

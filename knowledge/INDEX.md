@@ -13,3 +13,8 @@
 
 ## Navigation conventions
 Use descriptive filenames. Link to source code, paper sections and experiment run IDs rather than duplicating full content.
+
+## External and global scientific assets
+- See `assets/INDEX.md` for papers, reports, historical results, datasets and global benchmark metadata.
+- Pin the exact `kind:slug@version` reference in Claims/Run manifests.
+- Never treat Dataset location as its stable identity or an old report as independent evidence.

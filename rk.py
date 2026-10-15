@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Research Kernel v0.1: local-first, dependency-free research records."""
+"""Research Kernel v0.2: local-first, versioned research records."""
 import argparse
 import hashlib
 import json
@@ -8,6 +8,8 @@ import re
 import subprocess
 import sys
 import uuid
+
+import rk_assets
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,12 +19,15 @@ DIRS = (
     "knowledge/claims", "knowledge/evidence",
     "memory/inbox", "memory/compacted",
     "methods/skills", "experiments/runs", "src", "tests",
+    "assets/registry", "benchmarks/definitions", "research/archive",
+    "research/publications",
 )
 STARTER = {
     "AGENTS.md": "# Research Kernel\nRead workspace/policies.md and knowledge/INDEX.md before work.\n",
     "workspace/policies.md": "# Policies\nTreat model output as unverified. Preserve evidence.\n",
     "knowledge/INDEX.md": "# Knowledge Map\nAdd links to research documents here.\n",
     "memory/INDEX.md": "# Memory Map\nCompacted memory is a pointer, not authoritative evidence.\n",
+    "assets/INDEX.md": "# Research Assets\nUse `python rk.py asset list` for versioned assets.\n",
 }
 TASK_STATES = {"active", "blocked", "done"}
 CLAIM_STATES = {"provisional", "disputed", "verified", "refuted", "superseded"}
@@ -101,7 +106,12 @@ def git_info(*args):
 
 def init():
     for folder in DIRS:
-        (ROOT / folder).mkdir(parents=True, exist_ok=True)
+        directory = ROOT / folder
+        directory.mkdir(parents=True, exist_ok=True)
+        # Empty directories are not tracked by Git; keep structure clonable.
+        marker = directory / ".gitkeep"
+        if not marker.exists():
+            marker.touch()
     for name, content in STARTER.items():
         path = ROOT / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -174,12 +184,15 @@ def claim_new(args):
         fail("Claim statement must not be blank")
     ident = uid("claim")
     refs = [source_ref(x) for x in args.source]
+    for ref in args.asset_ref or []:
+        rk_assets.require_published(ROOT, ref)
     path = record_path("claim", ident, "knowledge/claims")
     save_json(path, {
         "schema_version": 1, "id": ident,
         "statement": args.statement, "scope": args.scope,
         "assumptions": args.assumptions, "status": "provisional",
-        "sources": refs, "created_at": now(), "history": [],
+        "sources": refs, "asset_refs": args.asset_ref or [],
+        "created_at": now(), "history": [],
     }, new=True)
     print(ident)
 
@@ -297,8 +310,17 @@ def doctor():
                         problems.append(f"Invalid task status: {path.name}")
                     if not data.get("title") or "next_action" not in data:
                         problems.append(f"Incomplete task: {path.name}")
-                if kind == "claim" and data.get("status") not in CLAIM_STATES:
-                    problems.append(f"Invalid claim status: {path.name}")
+                if kind == "claim":
+                    if data.get("status") not in CLAIM_STATES:
+                        problems.append(f"Invalid claim status: {path.name}")
+                    if not isinstance(data.get("asset_refs", []), list):
+                        problems.append(f"Invalid asset_refs: {path.name}")
+                    else:
+                        for ref in data.get("asset_refs", []):
+                            try:
+                                rk_assets.require_published(ROOT, ref)
+                            except (ValueError, TypeError) as e:
+                                problems.append(f"{path.name}: invalid asset ref: {e}")
                 if kind == "memory":
                     required = "proposed" if folder.endswith("inbox") else "accepted"
                     if data.get("status") != required or data.get("kind") not in MEMORY_KINDS:
@@ -309,9 +331,11 @@ def doctor():
                     problems.extend(f"{path.name}: {err}" for err in check_sources(data))
             except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:
                 problems.append(f"Unreadable record: {path.name} ({e})")
+    problems.extend(rk_assets.audit(ROOT, source_ref))
     for problem in problems:
         print("ERROR:", problem)
-    print(f"Checked {checked} records; errors: {len(problems)}")
+    n_assets = len(list((ROOT / "assets/registry").glob("*/*/*.json")))
+    print(f"Checked {checked} task/claim/memory records and {n_assets} asset versions; errors: {len(problems)}")
     return 1 if problems else 0
 
 
@@ -334,6 +358,7 @@ def context(args):
     optional += [
         ("knowledge/INDEX.md", (ROOT / "knowledge/INDEX.md").read_text(encoding="utf-8")),
         ("memory/INDEX.md", (ROOT / "memory/INDEX.md").read_text(encoding="utf-8")),
+        ("assets/INDEX.md", (ROOT / "assets/INDEX.md").read_text(encoding="utf-8")),
     ]
     output, skipped = "", []
     for must, (name, content) in (
@@ -353,7 +378,7 @@ def context(args):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Research Kernel v0.1")
+    parser = argparse.ArgumentParser(description="Research Kernel v0.2")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("init")
     sub.add_parser("doctor")
@@ -378,6 +403,7 @@ def main(argv=None):
     p.add_argument("--source", action="append", required=True)
     p.add_argument("--scope", default="unspecified")
     p.add_argument("--assumptions", default="")
+    p.add_argument("--asset-ref", action="append", help="published asset ref, e.g. dataset:corpus@v1")
     p = claims.add_parser("challenge")
     p.add_argument("id")
     p.add_argument("--reason", required=True)
@@ -390,6 +416,8 @@ def main(argv=None):
     p.add_argument("--source", action="append", required=True)
     p = memories.add_parser("accept")
     p.add_argument("id")
+
+    rk_assets.add_cli(sub)
 
     p = sub.add_parser("context")
     p.add_argument("--task")
@@ -411,6 +439,10 @@ def main(argv=None):
             (memory_propose if args.action == "propose" else memory_accept)(args)
         elif args.cmd == "context":
             context(args)
+        elif args.cmd == "asset":
+            return rk_assets.dispatch(args, ROOT, source_ref, read_json, save_json)
+        elif args.cmd == "store":
+            rk_assets.do_store(args, ROOT)
         return 0
     except (OSError, ValueError, EOFError, TypeError, KeyError) as e:
         print(f"ERROR: {e}", file=sys.stderr)

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Context Recovery"
+  short_description: "Recover minimal correct context for a research task, scientific study or agent handoff using bounded"

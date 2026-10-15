@@ -1,49 +1,44 @@
-# Research Kernel Starter v0.2
+# Research Kernel v0.3 — Scientific Workspace
 
-A local-first, Git-native research kernel built on the Python standard library.
-
-**[中文快速入门](QUICKSTART.zh-CN.md)** · **[科研资产与大数据管理](docs/DATA-STORAGE.zh-CN.md)** · **[Architecture](ARCHITECTURE.md)**
+A local-first, Git-native, dependency-free research record system with versioned scientific objects, source-linked memory, Context packets and safe legacy intake.
 
 ## Quick start
+
+Requirements: Python >= 3.10 and Git (optional for initial CLI tests). No LLM API, Vector DB, or background worker required.
 
 ```bash
 python rk.py init
 python rk.py doctor
 python -m unittest discover -s tests -v
+python rk.py science list
+python rk.py asset list
 ```
 
-Commit the source and metadata into Git. Raw datasets and machine-specific volume mappings are deliberately excluded by `.gitignore`.
-
-## CLI groups
-
-- `rk.py task new|set`, `rk.py handoff TASK_ID`, `rk.py context --task TASK_ID`
-- `rk.py claim new|challenge`, `rk.py memory propose|accept`
-- `rk.py asset wizard|new|list|show|edit|set|link|publish|fork|verify|check`
-- `rk.py store bind|list`, `rk.py doctor`
-
-Example: register an external dataset without downloading it:
+## Key commands
 
 ```bash
-python rk.py asset new dataset --slug demo --version v1 --title "Demo Corpus" \
-  --owner "Lab" --license "unknown" --uri "s3://research-bucket/demo-v1.tar.zst"
+python rk.py science new question --title "Does context strategy improve reliability?"
+python rk.py science new study --title "Study A" --mode empirical --link addresses RQ_ID
+python rk.py science new protocol --title "Evaluation protocol" --phase exploratory --link for_study STUDY_ID
+python rk.py science freeze PROTOCOL_ID --reviewed-by "Human researcher"
+python rk.py context --study STUDY_ID --profile research --max-chars 12000 --manifest-out .rk/context/selection.json
+python rk.py intake tree /path/to/legacy-tree.txt
+python rk.py doctor
 ```
 
-Update metadata with `$EDITOR`:
+`science freeze` records a textual reviewer identifier but does not authenticate it. Do not equate this with formal scientific approval. A final Review also does not automatically verify any Claim.
 
-```bash
-python rk.py asset edit dataset:demo@v1 --reason "add citation and checksum"
-```
+## Documentation
 
-Do not publish without verified requirements. See `docs/DATA-STORAGE.zh-CN.md` for actual review and integrity workflows.
+- [Scientific workflow](docs/SCIENTIFIC-WORKFLOW.zh-CN.md) — Question, Hypothesis, Study, Protocol, Run, Observation, Analysis, Review
+- [Context Engineering](docs/CONTEXT-ENGINEERING.zh-CN.md) — layered progressive loading, explicit memory, context manifest
+- [Legacy directory intake](docs/LEGACY-INTAKE.zh-CN.md) — read-only triage of messy research workspaces
+- [Large data and metadata storage](docs/DATA-STORAGE.zh-CN.md) — asset registry, external raw payload, published versions
+- [Upgrade v0.2 → v0.3](docs/UPGRADE-v0.2-to-v0.3.zh-CN.md)
+- [English architecture overview](ARCHITECTURE.md)
 
-## Installation
+## Trust boundaries
 
-Requires Python >=3.10. No external Python dependencies are required. Does not connect to any model provider or storage provider by itself.
+The provided example tree is a text listing, not original data or a Git history. `intake` reads names only and never relocates files. It cannot know actual file sizes, true source SHA, result correctness or whether suspicious paths contain active secrets. Metadata, summaries and model responses are never accepted as proof merely because they are stored in the Kernel.
 
-## Upgrade v0.1
-
-Copy the new scripts and modules, merge root instructions/policies rather than overwriting local adaptations, and run `python rk.py init`. Existing task/claim/memory records remain supported; existing claim records without `asset_refs` continue to validate.
-
-## Security caveat
-
-The CLI is a local workflow aid, not an access-control system. Agent shell permissions and network/storage credentials must be constrained separately.
+Use `methods/skills/` for progressive procedural guidance; the actual validation is enforced in the Python CLI where possible. Always protect secrets, restricted research data and native Git history separately.

@@ -33,3 +33,10 @@ Store large datasets and model weights outside ordinary Git. Commit source manif
 - Human researchers must review license, access restrictions, source provenance and Benchmark protocol before publishing. `--reviewed-by` is an audit label only.
 - Use `rk.py asset verify` to check a **locally available single file** before trusting declared checksums. No automatic remote data fetch is allowed.
 - Report/document metadata is not a substitute for its underlying research evidence.
+
+## Scientific kernel v0.3
+- Research Question and Hypothesis are distinct from Task and Claim; an Observation is not an Analysis or a verified scientific conclusion.
+- A confirmatory Protocol must be frozen before formal experiments; subsequent amendments get new IDs and keep parent IDs. Reconstruction after observing results is retrospective, not preregistered.
+- No agent may self-authorize a scientific finding by finalizing its own review. CLI records reviewer text but does not authenticate the reviewer. Human oversight and independent evidence are required.
+- Context Pack is an output artifact with a finite *character* budget (not a token-precise window), an optional local selection manifest and no raw dataset transfer.
+- Legacy Intake is inspection only; its path-derived classes are hypotheses about file roles and require human confirmation. Credentials cannot be managed as research evidence.

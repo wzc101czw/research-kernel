@@ -1,0 +1,3 @@
+interface:
+  display_name: "Experiment Evidence"
+  short_description: "Create traceable experimental Run, Observation and Analysis records from a frozen research protocol "

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Research Kernel v0.2: local-first, versioned research records."""
+"""Research Kernel v0.3: local-first, versioned research records."""
 import argparse
 import hashlib
 import json
@@ -10,6 +10,9 @@ import sys
 import uuid
 
 import rk_assets
+import rk_science
+import rk_context
+import rk_intake
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -21,6 +24,9 @@ DIRS = (
     "methods/skills", "experiments/runs", "src", "tests",
     "assets/registry", "benchmarks/definitions", "research/archive",
     "research/publications",
+    "science/questions", "science/hypotheses", "science/studies",
+    "science/protocols", "science/runs", "science/observations",
+    "science/analyses", "science/reviews",
 )
 STARTER = {
     "AGENTS.md": "# Research Kernel\nRead workspace/policies.md and knowledge/INDEX.md before work.\n",
@@ -28,6 +34,7 @@ STARTER = {
     "knowledge/INDEX.md": "# Knowledge Map\nAdd links to research documents here.\n",
     "memory/INDEX.md": "# Memory Map\nCompacted memory is a pointer, not authoritative evidence.\n",
     "assets/INDEX.md": "# Research Assets\nUse `python rk.py asset list` for versioned assets.\n",
+    "science/INDEX.md": "# Scientific Research Map\nUse `python rk.py science list` and trace Question -> Study -> Protocol -> Run -> Observation -> Analysis -> Review.\n",
 }
 TASK_STATES = {"active", "blocked", "done"}
 CLAIM_STATES = {"provisional", "disputed", "verified", "refuted", "superseded"}
@@ -71,8 +78,12 @@ def source_ref(name):
         rel = path.relative_to(ROOT)
     except ValueError:
         fail("Source must be inside this repository")
-    if not rel.parts or rel.parts[0] in {".git", ".cache", ".venv"}:
-        fail("Source is in a forbidden directory")
+    if (not rel.parts
+            or any(x in {".git", ".rk", ".cache", ".venv", "data", "secrets",
+                         ".ipynb_checkpoints"} for x in rel.parts)
+            or re.search(r"(api[_-]?key|password|secret|credential|private[_-]?key|access[_-]?token|\.env)",
+                         path.name, flags=re.I)):
+        fail("Source is in a forbidden directory or resembles sensitive credentials")
     if not path.is_file():
         fail(f"Source does not exist: {name}")
     digest = hashlib.sha256()
@@ -332,10 +343,14 @@ def doctor():
             except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:
                 problems.append(f"Unreadable record: {path.name} ({e})")
     problems.extend(rk_assets.audit(ROOT, source_ref))
+    problems.extend(rk_science.check(ROOT, source_ref))
     for problem in problems:
         print("ERROR:", problem)
     n_assets = len(list((ROOT / "assets/registry").glob("*/*/*.json")))
-    print(f"Checked {checked} task/claim/memory records and {n_assets} asset versions; errors: {len(problems)}")
+    n_science = sum(1 for folder in rk_science.KINDS.values()
+                    for _ in (ROOT / "science" / folder[1]).glob("*.json"))
+    print(f"Checked {checked} task/claim/memory records, {n_assets} asset versions, "
+          f"{n_science} scientific objects; errors: {len(problems)}")
     return 1 if problems else 0
 
 
@@ -378,7 +393,7 @@ def context(args):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Research Kernel v0.2")
+    parser = argparse.ArgumentParser(description="Research Kernel v0.3")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("init")
     sub.add_parser("doctor")
@@ -418,10 +433,11 @@ def main(argv=None):
     p.add_argument("id")
 
     rk_assets.add_cli(sub)
+    rk_science.add_cli(sub)
+    rk_intake.add_cli(sub)
 
     p = sub.add_parser("context")
-    p.add_argument("--task")
-    p.add_argument("--max-chars", type=int, default=8000)
+    rk_context.add_arguments(p)
 
     args = parser.parse_args(argv)
     try:
@@ -438,11 +454,23 @@ def main(argv=None):
         elif args.cmd == "memory":
             (memory_propose if args.action == "propose" else memory_accept)(args)
         elif args.cmd == "context":
-            context(args)
+            # Preserve v0.2 default Context output for existing users/scripts.
+            if not (args.study or args.memory or args.manifest_out or args.profile != "bootstrap"):
+                context(args)
+            else:
+                rk_context.pack(
+                    args, ROOT,
+                    lambda tid: read_json(record_path("task", tid, "workspace/tasks")),
+                    check_sources,
+                )
         elif args.cmd == "asset":
             return rk_assets.dispatch(args, ROOT, source_ref, read_json, save_json)
         elif args.cmd == "store":
             rk_assets.do_store(args, ROOT)
+        elif args.cmd == "science":
+            return rk_science.dispatch(args, ROOT, source_ref, save_json)
+        elif args.cmd == "intake":
+            return rk_intake.dispatch(args, ROOT)
         return 0
     except (OSError, ValueError, EOFError, TypeError, KeyError) as e:
         print(f"ERROR: {e}", file=sys.stderr)

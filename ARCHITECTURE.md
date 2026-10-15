@@ -50,3 +50,13 @@ The CLI `context` uses a character budget, not a token budget. No Vector DB or s
 - Concurrent writers are checked by metadata revision, but the standalone CLI has no multi-host lock service.
 - No authentication inside this CLI. Human approval labels are procedural, not identity proofs.
 - Asset publish is not independent scientific validation or legal licensing clearance.
+
+## v0.3 Scientific Method Layer
+
+`rk_science.py` introduces typed Question, Hypothesis, Study, Protocol, Run, Observation, Analysis and Review records under `science/`, separate from operational Tasks and unverified Claims. A confirmatory Protocol cannot freeze without declared variables, controls, outcomes, analysis plan and stopping rule. Amendments preserve the old record. No scientific validation is inferred from a successful CLI command.
+
+`rk_context.py` implements study-scoped, char-bounded progressive context packaging. Explicit reviewed Memory IDs are source-checked. The `.rk/context/` manifest records what was included/omitted and the source bytes used. The unextended `rk.py context --task` call remains backwards compatible.
+
+`rk_intake.py` accepts a Unicode tree listing or reads live directory *names only* to generate a local untracked advisory triage report. It does not read secrets, move files, download data or infer run provenance from filenames.
+
+New procedures are task-selected Agent Skills under `methods/skills/`, with canonical rules in `AGENTS.md` and `workspace/policies.md`.

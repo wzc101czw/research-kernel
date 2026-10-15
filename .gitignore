@@ -22,3 +22,17 @@ secrets/
 *.safetensors
 *.pt
 *.pth
+
+# Security: accidental secrets and notebook checkpoint copies
+api_key.txt
+**/api_key.txt
+**/*api_key*checkpoint*
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+*credentials*.json
+*.pem
+
+# Detached large experiment artifacts
+*.parquet
+*.safetensors
+*.ckpt

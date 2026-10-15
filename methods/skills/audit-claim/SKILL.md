@@ -1,14 +1,13 @@
 ---
 name: audit-claim
-description: Challenge research conclusions against primary evidence, source hashes, assumptions, counterexamples and reproducible tests when asked to reevaluate prior findings.
+description: Recheck an existing scientific Claim against original evidence, assumptions, experimental controls, protocol versions and contradictory observations, without fabricating validation.
 ---
-# Claim audit
+# Audit a research Claim
 
-1. Read the target Claim JSON and each source file. Check source digests with `python rk.py doctor`.
-2. Separate raw observation, inferential interpretation and assumptions.
-3. Search for invalid baseline, confounders, missing replications or contradictory evidence.
-4. If challenged, run `python rk.py claim challenge CLAIM_ID --reason "..."`.
-5. Propose an independent experiment and save its config and results in `experiments/runs/`.
-6. Do not silently edit old evidence or mark the conclusion verified. Record a review decision separately.
-
-This skill supplies a review procedure, not automatic scientific truth.
+1. Inspect the Claim and original sources; run `python rk.py doctor` to check source SHA drift.
+2. Find any linked Study and Protocol. A retrospectively inferred protocol is not preregistered.
+3. Separate raw Observation, Analysis, hypothesis and Claim. Check data splits, metric validity, selection bias, confounding variables, replication and scope.
+4. Use `python rk.py claim challenge CLAIM_ID --reason "..."` when evidence is contradicted or insufficient.
+5. For formal independent review, create `python rk.py science new review --title "..." --link reviews CLAIM_ID` and record rationale/source evidence.
+6. A reviewer may finalize with `science finalize` but it **does not** change the Claim's scientific validity or `verified` status automatically.
+7. Preserve negative results and propose new experiments without rewriting original logs.

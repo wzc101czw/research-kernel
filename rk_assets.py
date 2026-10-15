@@ -197,7 +197,9 @@ def source_small(path, source_ref, root):
     except ValueError:
         error("Source must be inside this repository")
     if (not original.is_file() or original.stat().st_size > 5 * 1024 * 1024
-            or any(x in (".git", ".rk", "data", "secrets", ".cache") for x in relative.parts)):
+            or any(x in (".git", ".rk", "data", "secrets", ".cache", ".ipynb_checkpoints") for x in relative.parts)
+            or re.search(r"(api[_-]?key|password|secret|credential|private[_-]?key|access[_-]?token|\.env)",
+                         original.name, flags=re.I)):
         error("Versioned text sources must exist inside Git and be <= 5 MiB, not raw datasets")
     return source_ref(path)
 

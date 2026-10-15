@@ -15,8 +15,8 @@ class KernelTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name) / "project"
         self.root.mkdir()
-        shutil.copyfile(SRC, self.root / "rk.py")
-        shutil.copyfile(SRC.with_name("rk_assets.py"), self.root / "rk_assets.py")
+        for module in ("rk.py", "rk_assets.py", "rk_science.py", "rk_context.py", "rk_intake.py"):
+            shutil.copyfile(SRC.with_name(module), self.root / module)
         self.call("init", ok=True)
 
     def tearDown(self):
@@ -99,6 +99,14 @@ class KernelTests(unittest.TestCase):
         self.call("claim", "new", "--statement", "Leak",
                   "--source", "../private.txt", ok=False)
         self.call("handoff", "../private", ok=False)
+
+    def test_claim_rejects_secret_candidate_source(self):
+        p = self.root / "knowledge/evidence/api_key.txt"
+        p.write_text("DUMMY_UNSAFE_EXAMPLE", encoding="utf-8")
+        self.call("claim", "new", "--statement", "Accidental sensitive source",
+                  "--source", "knowledge/evidence/api_key.txt", ok=False)
+        self.call("memory", "propose", "--summary", "Should not store this",
+                  "--source", "knowledge/evidence/api_key.txt", ok=False)
 
     def test_symlink_escape_rejected(self):
         outside = Path(self.tmp.name) / "private.txt"
